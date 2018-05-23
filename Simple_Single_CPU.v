@@ -52,6 +52,9 @@ wire	  [32-1:0]	  pc_ifBranch;
 wire					  jump;
 wire					  jump1;
 wire					  ifjr;
+
+wire       [3-1:0]  Branch_type;
+wire                Branch_result;
 //Greate componentes
 ProgramCounter PC(
        .clk_i(clk_i),      
@@ -100,7 +103,8 @@ Decoder Decoder(
 		  .Memto_Reg_o(Memto_Reg),
         .MemRead_o(MemRead),
         .MemWrite_o(MemWrite),
-        .Jump_o(jump)
+        .Jump_o(jump),
+        .Branch_type_o(Branch_type)
 	    );
 
 ALU_Ctrl AC(
@@ -142,8 +146,8 @@ Shift_Left_Two_32 Shifter(
         .data_o(Shift_data)
         ); 		
 
-wire Branchzero;
-assign Branchzero = branch & Zero;
+wire Branchzero;        //AND gate for branch
+assign Branchzero = branch & Branch_result;
 
 MUX_2to1 #(.size(32)) Mux_PC_Source(
         .data0_i(Add1_sum),
@@ -209,6 +213,13 @@ MUX_2to1 #(.size(1)) Mux_Jump_Jr(
 			.select_i(ifjr),
 			.data_o(jump1)	
 			);
+			
+Branch_Judge Branch_Judge(
+            .zero_i(Zero),
+            .ALU_result_i(ALU_result),
+            .Branch_type_i(Branch_type),
+            .ifBranch_o(Branch_result)
+            );
 /*always @(clk_i) begin
     $display("%b ==> %d <=> %d ",RegWrite,Mux1_data,ALU_result);
 */
